@@ -1,0 +1,148 @@
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatListModule } from '@angular/material/list';
+import { MatCardModule } from '@angular/material/card';
+import { TicketService } from '../../../core/services/ticket.service';
+import { CommentService } from '../../../core/services/comment.service';
+import { TimeEntryService } from '../../../core/services/time-entry.service';
+import { AuthService } from '../../../core/services/auth.service';
+import {
+  ActivityLogEntry,
+  Comment,
+  Ticket,
+  TicketPriority,
+  TicketStatus,
+  TimeEntry,
+  UserRole,
+} from '../../../core/models';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+
+@Component({
+  selector: 'app-ticket-detail',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatTabsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatButtonModule,
+    MatListModule,
+    MatCardModule,
+    PageHeaderComponent,
+  ],
+  templateUrl: './ticket-detail.component.html',
+  styleUrl: './ticket-detail.component.scss',
+})
+export class TicketDetailComponent implements OnInit {
+  ticket: Ticket | null = null;
+  comments: Comment[] = [];
+  timeEntries: TimeEntry[] = [];
+  activity: ActivityLogEntry[] = [];
+
+  statuses = Object.values(TicketStatus);
+  priorities = Object.values(TicketPriority);
+
+  commentForm = this.fb.group({
+    text: ['', Validators.required],
+  });
+
+  timeEntryForm = this.fb.group({
+    durationMinutes: [30, [Validators.required, Validators.min(1)]],
+    description: [''],
+  });
+
+  ticketId = 0;
+
+  constructor(
+    private route: ActivatedRoute,
+    private fb: FormBuilder,
+    private ticketService: TicketService,
+    private commentService: CommentService,
+    private timeEntryService: TimeEntryService,
+    public authService: AuthService
+  ) {}
+
+  ngOnInit(): void {
+    this.ticketId = Number(this.route.snapshot.paramMap.get('id')) || 0;
+    if (this.ticketId) {
+      this.loadTicket();
+      this.loadComments();
+      this.loadTimeEntries();
+      this.loadActivity();
+    }
+  }
+
+  get isAgentOrAdmin(): boolean {
+    return this.authService.hasRole(UserRole.Admin, UserRole.SupportAgent);
+  }
+
+  get totalMinutes(): number {
+    return this.timeEntries.reduce((sum, e) => sum + e.durationMinutes, 0);
+  }
+
+  loadTicket(): void {
+    this.ticketService.getTicket(this.ticketId).subscribe((t) => (this.ticket = t));
+  }
+
+  loadComments(): void {
+    this.commentService.getComments(this.ticketId).subscribe((c) => (this.comments = c));
+  }
+
+  loadTimeEntries(): void {
+    this.timeEntryService
+      .getTimeEntries(this.ticketId)
+      .subscribe((entries) => (this.timeEntries = entries));
+  }
+
+  loadActivity(): void {
+    this.ticketService.getActivity(this.ticketId).subscribe((entries) => (this.activity = entries));
+  }
+
+  updateStatus(status: TicketStatus): void {
+    this.ticketService.updateTicket(this.ticketId, { status }).subscribe((t) => {
+      this.ticket = t;
+      this.loadActivity();
+    });
+  }
+
+  updatePriority(priority: TicketPriority): void {
+    this.ticketService.updateTicket(this.ticketId, { priority }).subscribe((t) => {
+      this.ticket = t;
+      this.loadActivity();
+    });
+  }
+
+  addComment(): void {
+    if (this.commentForm.invalid) return;
+    const text = this.commentForm.value.text!;
+    this.commentService.addComment(this.ticketId, { text }).subscribe((c) => {
+      this.comments.push(c);
+      this.commentForm.reset();
+      this.loadActivity();
+    });
+  }
+
+  addTimeEntry(): void {
+    if (this.timeEntryForm.invalid) return;
+    const { durationMinutes, description } = this.timeEntryForm.getRawValue();
+    this.timeEntryService
+      .addTimeEntry(this.ticketId, {
+        workDate: new Date().toISOString(),
+        durationMinutes: durationMinutes!,
+        description: description || undefined,
+      })
+      .subscribe((entry) => {
+        this.timeEntries.push(entry);
+        this.timeEntryForm.reset({ durationMinutes: 30, description: '' });
+      });
+  }
+}

@@ -1,0 +1,12 @@
+.filters {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.full-width {
+  width: 100%;
+}
+tr[mat-row] {
+  cursor: pointer;
+}

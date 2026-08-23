@@ -1,0 +1,31 @@
+<app-page-header title="My Tickets" subtitle="Tickets you have submitted"></app-page-header>
+
+<a mat-flat-button color="primary" routerLink="/customer/tickets/new" class="new-btn">New ticket</a>
+
+<table mat-table [dataSource]="tickets" class="mat-elevation-z1 full-width">
+  <ng-container matColumnDef="title">
+    <th mat-header-cell *matHeaderCellDef>Title</th>
+    <td mat-cell *matCellDef="let t">{{ t.title }}</td>
+  </ng-container>
+  <ng-container matColumnDef="status">
+    <th mat-header-cell *matHeaderCellDef>Status</th>
+    <td mat-cell *matCellDef="let t">{{ t.status }}</td>
+  </ng-container>
+  <ng-container matColumnDef="priority">
+    <th mat-header-cell *matHeaderCellDef>Priority</th>
+    <td mat-cell *matCellDef="let t">{{ t.priority }}</td>
+  </ng-container>
+  <ng-container matColumnDef="createdAt">
+    <th mat-header-cell *matHeaderCellDef>Created</th>
+    <td mat-cell *matCellDef="let t">{{ t.createdAt | date: 'short' }}</td>
+  </ng-container>
+  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+  <tr mat-row *matRowDef="let row; columns: displayedColumns" (click)="openTicket(row.id)"></tr>
+</table>
+
+<mat-paginator
+  [length]="totalCount"
+  [pageSize]="pageSize"
+  [pageSizeOptions]="[5, 10, 25]"
+  (page)="onPage($event)"
+></mat-paginator>

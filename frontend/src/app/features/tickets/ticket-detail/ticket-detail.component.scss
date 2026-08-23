@@ -1,0 +1,39 @@
+.tab-content {
+  padding: 1rem 0;
+}
+
+.controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.readonly-field {
+  padding: 0.5rem 0;
+  font-weight: 500;
+}
+
+.meta {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 500px;
+  margin-top: 1rem;
+}
+
+.comment-date {
+  margin-left: 0.5rem;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.75rem;
+}

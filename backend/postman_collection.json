@@ -1,0 +1,264 @@
+{
+  "info": {
+    "name": "Support Ticket Management System",
+    "_postman_id": "b6b1f8b0-0000-4000-8000-000000000001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "API collection for the Support Ticket Management System backend. Set `baseUrl` to your running instance (e.g. http://localhost:5168) and use the Login request to populate {{accessToken}} and {{refreshToken}} automatically."
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5168" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "ticketId", "value": "1" },
+    { "key": "userId", "value": "1" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [ { "key": "token", "value": "{{accessToken}}", "type": "string" } ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Customer)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newcustomer@example.com\",\n  \"password\": \"Password1!\",\n  \"fullName\": \"New Customer\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Admin seed account)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', body.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@supporttickets.local\",\n  \"password\": \"Admin123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Customer seed account)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer1@supporttickets.local\",\n  \"password\": \"Customer123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin only)",
+      "item": [
+        {
+          "name": "List Users",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users" }
+        },
+        {
+          "name": "List SupportAgents",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users?role=SupportAgent" }
+        },
+        {
+          "name": "Get User By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/users/{{userId}}" }
+        },
+        {
+          "name": "Create Agent",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newagent@supporttickets.local\",\n  \"password\": \"Agent123!\",\n  \"fullName\": \"New Agent\",\n  \"role\": \"SupportAgent\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"role\": \"SupportAgent\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/users/{{userId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Tickets",
+      "item": [
+        {
+          "name": "List Tickets (paginated/filterable)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets?page=1&pageSize=20&status=Open&priority=High&search=login&sortBy=createdAt&descending=true",
+              "host": [ "{{baseUrl}}" ],
+              "path": [ "api", "tickets" ],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "status", "value": "Open" },
+                { "key": "priority", "value": "High" },
+                { "key": "search", "value": "login" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "descending", "value": "true" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Ticket By Id",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/tickets/{{ticketId}}" }
+        },
+        {
+          "name": "Create Ticket (Customer/Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  pm.collectionVariables.set('ticketId', body.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/tickets",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Cannot access my account\",\n  \"description\": \"I get an error when logging in.\",\n  \"priority\": \"High\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Ticket - Change Status",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": null,\n  \"description\": null,\n  \"status\": \"InProgress\",\n  \"priority\": null,\n  \"assignedAgentId\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Ticket - Assign Agent (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": null,\n  \"description\": null,\n  \"status\": null,\n  \"priority\": null,\n  \"assignedAgentId\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Ticket (Admin)",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/api/tickets/{{ticketId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "List Comments For Ticket",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/tickets/{{ticketId}}/comments" }
+        },
+        {
+          "name": "Add Comment",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"We are looking into this now.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Time Entries",
+      "item": [
+        {
+          "name": "List Time Entries For Ticket",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/tickets/{{ticketId}}/timeentries" }
+        },
+        {
+          "name": "Log Time (SupportAgent/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}/timeentries",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"workDate\": \"2026-08-20T00:00:00Z\",\n  \"durationMinutes\": 45,\n  \"description\": \"Investigated root cause\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Summary (Admin)",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/dashboard/summary" }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+<ng-container *ngIf="ticket">
+  <app-page-header [title]="ticket.title" [subtitle]="'Ticket #' + ticket.id"></app-page-header>
+
+  <mat-tab-group>
+    <mat-tab label="Details">
+      <div class="tab-content">
+        <p>{{ ticket.description }}</p>
+
+        <div class="controls">
+          <mat-form-field appearance="outline" *ngIf="isAgentOrAdmin">
+            <mat-label>Status</mat-label>
+            <mat-select [value]="ticket.status" (selectionChange)="updateStatus($event.value)">
+              <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <span *ngIf="!isAgentOrAdmin" class="readonly-field">Status: {{ ticket.status }}</span>
+
+          <mat-form-field appearance="outline" *ngIf="isAgentOrAdmin">
+            <mat-label>Priority</mat-label>
+            <mat-select [value]="ticket.priority" (selectionChange)="updatePriority($event.value)">
+              <mat-option *ngFor="let p of priorities" [value]="p">{{ p }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <span *ngIf="!isAgentOrAdmin" class="readonly-field">Priority: {{ ticket.priority }}</span>
+        </div>
+
+        <p class="meta">Created by {{ ticket.customerName }} on {{ ticket.createdAt | date: 'medium' }}</p>
+        <p class="meta">Assigned to {{ ticket.assignedAgentName || 'Unassigned' }}</p>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Comments">
+      <div class="tab-content">
+        <mat-list>
+          <mat-list-item *ngFor="let c of comments">
+            <div class="comment">
+              <strong>{{ c.userName }}</strong>
+              <span class="comment-date">{{ c.createdAt | date: 'short' }}</span>
+              <p>{{ c.text }}</p>
+            </div>
+          </mat-list-item>
+        </mat-list>
+        <form [formGroup]="commentForm" (ngSubmit)="addComment()" class="add-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Add a comment</mat-label>
+            <textarea matInput formControlName="text" rows="3"></textarea>
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="commentForm.invalid">
+            Post comment
+          </button>
+        </form>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Activity">
+      <div class="tab-content">
+        <mat-list>
+          <mat-list-item *ngFor="let a of activity">
+            {{ a.userName }} changed {{ a.type }} from {{ a.oldValue }} to {{ a.newValue }} —
+            {{ a.createdAt | date: 'short' }}
+          </mat-list-item>
+          <mat-list-item *ngIf="activity.length === 0">
+            No activity recorded yet.
+          </mat-list-item>
+        </mat-list>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Time Tracking">
+      <div class="tab-content">
+        <mat-list>
+          <mat-list-item *ngFor="let e of timeEntries">
+            {{ e.userName }} logged {{ e.durationMinutes }} min — {{ e.description }} ({{ e.createdAt | date: 'short' }})
+          </mat-list-item>
+        </mat-list>
+        <p><strong>Total time logged: {{ totalMinutes }} minutes</strong></p>
+
+        <form
+          *ngIf="isAgentOrAdmin"
+          [formGroup]="timeEntryForm"
+          (ngSubmit)="addTimeEntry()"
+          class="add-form"
+        >
+          <mat-form-field appearance="outline">
+            <mat-label>Minutes spent</mat-label>
+            <input matInput type="number" formControlName="durationMinutes" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit" [disabled]="timeEntryForm.invalid">
+            Log time
+          </button>
+        </form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</ng-container>

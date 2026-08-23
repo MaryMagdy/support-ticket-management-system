@@ -1,0 +1,48 @@
+<mat-sidenav-container class="app-container">
+  <mat-sidenav
+    #drawer
+    class="sidenav"
+    [mode]="(isHandset$ | async) ? 'over' : 'side'"
+    [opened]="(isHandset$ | async) === false"
+  >
+    <mat-nav-list>
+      <ng-container *ngIf="authService.hasRole(UserRole.Admin)">
+        <a mat-list-item routerLink="/admin/dashboard" routerLinkActive="active-link">Dashboard</a>
+        <a mat-list-item routerLink="/tickets" routerLinkActive="active-link">All Tickets</a>
+        <a mat-list-item routerLink="/admin/users" routerLinkActive="active-link">Users</a>
+      </ng-container>
+      <ng-container *ngIf="authService.hasRole(UserRole.SupportAgent)">
+        <a mat-list-item routerLink="/agent/tickets" routerLinkActive="active-link">My Tickets</a>
+      </ng-container>
+      <ng-container *ngIf="authService.hasRole(UserRole.Customer)">
+        <a mat-list-item routerLink="/customer/tickets" routerLinkActive="active-link">My Tickets</a>
+        <a mat-list-item routerLink="/customer/tickets/new" routerLinkActive="active-link">New Ticket</a>
+      </ng-container>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <button
+        mat-icon-button
+        *ngIf="isHandset$ | async"
+        (click)="drawer.toggle()"
+        aria-label="Toggle navigation"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+      <span>Support Ticket Management</span>
+      <span class="spacer"></span>
+      <span class="user-name" *ngIf="authService.currentUser as user">{{ user.fullName }}</span>
+      <button mat-icon-button (click)="logout()" aria-label="Logout">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
+<app-spinner-overlay></app-spinner-overlay>
