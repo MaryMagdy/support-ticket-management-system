@@ -3,14 +3,15 @@
     "name": "Support Ticket Management System",
     "_postman_id": "b6b1f8b0-0000-4000-8000-000000000001",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "API collection for the Support Ticket Management System backend. Set `baseUrl` to your running instance (e.g. http://localhost:5168) and use the Login request to populate {{accessToken}} and {{refreshToken}} automatically."
+    "description": "API collection for the Support Ticket Management System backend. Set `baseUrl` to your running instance (e.g. http://localhost:5000) and use the Login request to populate {{accessToken}} and {{refreshToken}} automatically."
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:5168" },
+    { "key": "baseUrl", "value": "http://localhost:5000" },
     { "key": "accessToken", "value": "" },
     { "key": "refreshToken", "value": "" },
     { "key": "ticketId", "value": "1" },
-    { "key": "userId", "value": "1" }
+    { "key": "userId", "value": "1" },
+    { "key": "rowVersion", "value": "" }
   ],
   "auth": {
     "type": "bearer",
@@ -152,7 +153,22 @@
         },
         {
           "name": "Get Ticket By Id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.rowVersion) { pm.collectionVariables.set('rowVersion', body.rowVersion); }"
+                ]
+              }
+            }
+          ],
           "request": { "method": "GET", "url": "{{baseUrl}}/api/tickets/{{ticketId}}" }
+        },
+        {
+          "name": "Get Ticket Activity Timeline",
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/tickets/{{ticketId}}/activity" }
         },
         {
           "name": "Create Ticket (Customer/Admin)",
@@ -164,6 +180,7 @@
                   "if (pm.response.code === 201) {",
                   "  const body = pm.response.json();",
                   "  pm.collectionVariables.set('ticketId', body.id);",
+                  "  pm.collectionVariables.set('rowVersion', body.rowVersion);",
                   "}"
                 ]
               }
@@ -181,25 +198,59 @@
         },
         {
           "name": "Update Ticket - Change Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.rowVersion) { pm.collectionVariables.set('rowVersion', body.rowVersion); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "url": "{{baseUrl}}/api/tickets/{{ticketId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": null,\n  \"description\": null,\n  \"status\": \"InProgress\",\n  \"priority\": null,\n  \"assignedAgentId\": null\n}"
+              "raw": "{\n  \"title\": null,\n  \"description\": null,\n  \"status\": \"InProgress\",\n  \"priority\": null,\n  \"assignedAgentId\": null,\n  \"rowVersion\": \"{{rowVersion}}\"\n}"
             }
           }
         },
         {
           "name": "Update Ticket - Assign Agent (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body && body.rowVersion) { pm.collectionVariables.set('rowVersion', body.rowVersion); }"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PUT",
             "header": [ { "key": "Content-Type", "value": "application/json" } ],
             "url": "{{baseUrl}}/api/tickets/{{ticketId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": null,\n  \"description\": null,\n  \"status\": null,\n  \"priority\": null,\n  \"assignedAgentId\": 2\n}"
+              "raw": "{\n  \"title\": null,\n  \"description\": null,\n  \"status\": null,\n  \"priority\": null,\n  \"assignedAgentId\": 2,\n  \"rowVersion\": \"{{rowVersion}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Ticket - Stale RowVersion (expect 409)",
+          "request": {
+            "method": "PUT",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": "{{baseUrl}}/api/tickets/{{ticketId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reusing a stale rowVersion should 409\",\n  \"description\": null,\n  \"status\": null,\n  \"priority\": null,\n  \"assignedAgentId\": null,\n  \"rowVersion\": \"{{rowVersion}}\"\n}"
             }
           }
         },

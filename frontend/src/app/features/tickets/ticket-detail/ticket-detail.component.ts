@@ -94,6 +94,18 @@ export class TicketDetailComponent implements OnInit {
     return this.authService.hasRole(UserRole.Admin);
   }
 
+  /** Customers can't change status/priority in general, but they can close a resolved ticket. */
+  get canCloseAsCustomer(): boolean {
+    return (
+      this.authService.hasRole(UserRole.Customer) &&
+      this.ticket?.status === TicketStatus.Resolved
+    );
+  }
+
+  closeTicket(): void {
+    this.updateStatus(TicketStatus.Closed);
+  }
+
   loadAgents(): void {
     this.userService.getUsers(UserRole.SupportAgent).subscribe((agents) => (this.agents = agents));
   }

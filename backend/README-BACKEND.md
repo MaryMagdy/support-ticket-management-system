@@ -85,7 +85,7 @@ By default `ASPNETCORE_ENVIRONMENT=Development` (see `Properties/launchSettings.
 - Swagger UI is enabled.
 
 Swagger UI: **https://localhost:{port}/swagger** (the exact port is printed on startup, e.g.
-`http://localhost:5168/swagger`). Click **Authorize** and paste `Bearer <access-token>` to
+`http://localhost:5000/swagger`). Click **Authorize** and paste `Bearer <access-token>` to
 call protected endpoints from the UI.
 
 ## Running migrations manually

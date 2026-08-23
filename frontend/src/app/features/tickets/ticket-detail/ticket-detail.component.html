@@ -14,6 +14,14 @@
             </mat-select>
           </mat-form-field>
           <span *ngIf="!isAgentOrAdmin" class="readonly-field">Status: {{ ticket.status }}</span>
+          <button
+            mat-flat-button
+            color="primary"
+            *ngIf="canCloseAsCustomer"
+            (click)="closeTicket()"
+          >
+            Close ticket
+          </button>
 
           <mat-form-field appearance="outline" *ngIf="isAgentOrAdmin">
             <mat-label>Priority</mat-label>
