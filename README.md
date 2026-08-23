@@ -86,9 +86,11 @@ in [`backend/README-BACKEND.md`](backend/README-BACKEND.md) and
 
 ## Assumptions & known limitations
 
-- **Database provider**: only a SQLite EF Core migration is checked in (used for local
-  runs/tests — zero setup). Switching to SQL Server for a real deployment requires generating
-  a second, SQL-Server-specific migration set (documented in `backend/README-BACKEND.md`).
+- **Database provider**: both a SQLite and a SQL Server EF Core migration exist, each in its
+  own migrations project with its own model snapshot, selected at runtime by
+  `Database:Provider`. SQLite (zero setup) is what's used for local runs and the test suite;
+  the SQL Server migration's generated T-SQL has been reviewed but not run against a live SQL
+  Server instance in this environment. See `backend/README-BACKEND.md`.
 - **"Open + critical" dashboard metric** is interpreted as *tickets still requiring attention*:
   any ticket that is `Open`, or not yet `Closed` and `Critical` priority.
 - **Status transitions**: `Open → InProgress → Resolved → Closed`. Agents/Admins drive

@@ -18,7 +18,8 @@ public static class DependencyInjection
         {
             if (string.Equals(provider, "SqlServer", StringComparison.OrdinalIgnoreCase))
             {
-                options.UseSqlServer(configuration.GetConnectionString("SqlServer"));
+                options.UseSqlServer(configuration.GetConnectionString("SqlServer"), sql =>
+                    sql.MigrationsAssembly("SupportTickets.Infrastructure.SqlServerMigrations"));
             }
             else
             {

@@ -23,6 +23,7 @@
     <ProjectReference Include="..\SupportTickets.Domain\SupportTickets.Domain.csproj" />
     <ProjectReference Include="..\SupportTickets.Application\SupportTickets.Application.csproj" />
     <ProjectReference Include="..\SupportTickets.Infrastructure\SupportTickets.Infrastructure.csproj" />
+    <ProjectReference Include="..\SupportTickets.Infrastructure.SqlServerMigrations\SupportTickets.Infrastructure.SqlServerMigrations.csproj" />
   </ItemGroup>
 
 </Project>

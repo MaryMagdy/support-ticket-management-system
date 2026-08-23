@@ -48,10 +48,26 @@ Controlled by the `Database:Provider` configuration key, read in
 To force a provider regardless of environment, override `Database:Provider` via
 environment variable, e.g. `Database__Provider=SqlServer`.
 
-Only one EF Core migration set exists (`src/SupportTickets.Infrastructure/Migrations`),
-generated against SQLite, which is the default provider for local runs/tests. If you switch
-to SQL Server you will need to generate a SQL Server-specific migration (see below) because
-SQLite and SQL Server migrations are not always binary compatible (column types, etc).
+Two independent EF Core migration sets exist, each in its own project with its own model
+snapshot (EF ties one snapshot per migrations assembly, so SQLite and SQL Server — which
+map some column types differently — can't safely share one):
+
+- `src/SupportTickets.Infrastructure/Migrations` — SQLite, used by default and by the test suite.
+- `src/SupportTickets.Infrastructure.SqlServerMigrations/Migrations` — SQL Server, selected via
+  `sql.MigrationsAssembly("SupportTickets.Infrastructure.SqlServerMigrations")` in
+  `DependencyInjection.cs` whenever `Database:Provider=SqlServer`.
+
+Both are applied automatically on startup via `Database.MigrateAsync()` — whichever one matches
+the active provider. To verify the SQL Server migration independently of a real SQL Server
+instance, generate its SQL script:
+
+```bash
+cd backend/src/SupportTickets.Api
+Database__Provider=SqlServer dotnet ef migrations script \
+  --project ../SupportTickets.Infrastructure.SqlServerMigrations \
+  --startup-project . \
+  --context SupportTickets.Infrastructure.Persistence.AppDbContext
+```
 
 ## Running the API
 
@@ -77,13 +93,26 @@ call protected endpoints from the UI.
 ```bash
 dotnet tool install --global dotnet-ef
 cd backend/src/SupportTickets.Api
+
+# SQLite (default)
 dotnet ef database update --project ../SupportTickets.Infrastructure --startup-project .
+
+# SQL Server
+Database__Provider=SqlServer dotnet ef database update \
+  --project ../SupportTickets.Infrastructure.SqlServerMigrations \
+  --startup-project . \
+  --context SupportTickets.Infrastructure.Persistence.AppDbContext
 ```
 
-To add a new migration after changing entities:
+To add a new migration after changing entities, generate **both** sets so they stay in sync:
 
 ```bash
-dotnet ef migrations add <Name> --project ../SupportTickets.Infrastructure --startup-project . --output-dir ../SupportTickets.Infrastructure/Migrations
+dotnet ef migrations add <Name> --project ../SupportTickets.Infrastructure --startup-project .
+
+Database__Provider=SqlServer dotnet ef migrations add <Name> \
+  --project ../SupportTickets.Infrastructure.SqlServerMigrations \
+  --startup-project . \
+  --context SupportTickets.Infrastructure.Persistence.AppDbContext
 ```
 
 ## Seed data / test accounts
@@ -200,10 +229,11 @@ Last known-good result: **36/36 tests passing** (24 unit + 12 integration).
 
 ## Known limitations / assumptions
 
-- The single EF Core migration set targets SQLite only; switching to SQL Server in a real
-  deployment requires generating a SQL-Server-specific migration (`dotnet ef migrations add
-  InitialCreateSqlServer` with `Database:Provider=SqlServer`), since some SQLite/SQL Server
-  column mappings differ.
+- Both a SQLite and a SQL Server EF Core migration exist (see "Database provider toggle"
+  above). The SQL Server migration's generated T-SQL script has been reviewed for
+  correctness but has not been run against a live SQL Server instance in this environment
+  (none was available); the SQLite path is what's actually exercised by the test suite and
+  the seeded local run.
 - "Open + critical" on the dashboard is interpreted as *tickets still requiring attention*:
   any ticket that is `Open`, or is not yet `Closed` and has `Critical` priority.
 - Refresh tokens are stored per-user in a simple table (no device/session metadata); a
