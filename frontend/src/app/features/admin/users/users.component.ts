@@ -28,6 +28,7 @@ import { UserDialogComponent } from './user-dialog/user-dialog.component';
 })
 export class UsersComponent implements OnInit {
   displayedColumns = ['name', 'email', 'role', 'actions'];
+  private allUsers: User[] = [];
   users: User[] = [];
   totalCount = 0;
   pageSize = 10;
@@ -39,17 +40,24 @@ export class UsersComponent implements OnInit {
     this.load();
   }
 
+  /** Backend returns the full user list (not paginated); paginate client-side. */
   load(): void {
-    this.userService.getUsers(this.pageIndex + 1, this.pageSize).subscribe((res) => {
-      this.users = res.items;
-      this.totalCount = res.totalCount;
+    this.userService.getUsers().subscribe((res) => {
+      this.allUsers = res;
+      this.totalCount = res.length;
+      this.applyPage();
     });
+  }
+
+  private applyPage(): void {
+    const start = this.pageIndex * this.pageSize;
+    this.users = this.allUsers.slice(start, start + this.pageSize);
   }
 
   onPage(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
-    this.load();
+    this.applyPage();
   }
 
   openCreate(): void {

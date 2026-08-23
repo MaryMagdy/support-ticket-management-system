@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PagedResult, User } from '../models';
+import { User, UserRole } from '../models';
 
 export interface CreateUserRequest {
   fullName: string;
@@ -23,10 +23,11 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  getUsers(page = 1, pageSize = 20): Observable<PagedResult<User>> {
-    return this.http.get<PagedResult<User>>(this.baseUrl, {
-      params: { page, pageSize },
-    });
+  /** Backend returns a plain array (not paginated) — optionally filter by role. */
+  getUsers(role?: UserRole): Observable<User[]> {
+    let params = new HttpParams();
+    if (role) params = params.set('role', role);
+    return this.http.get<User[]>(this.baseUrl, { params });
   }
 
   getUser(id: number): Observable<User> {

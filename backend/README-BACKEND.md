@@ -172,6 +172,20 @@ Open -> InProgress -> Resolved -> Closed
 Implemented as a pure, easily-unit-tested static rule set:
 `SupportTickets.Domain.Rules.TicketStatusRules.IsValidTransition(from, to, role)`.
 
+### Optimistic concurrency
+
+`Ticket.RowVersion` (a `Guid`, app-managed rather than a DB-generated rowversion column so
+it behaves identically on SQLite and SQL Server) is returned in every `TicketDto` and marked
+as an EF Core concurrency token. Clients that send back the `rowVersion` they last read in
+`PUT /api/tickets/{id}` get it checked against the current row before the update is applied:
+if another request updated the ticket in the meantime, `SaveChangesAsync` throws
+`DbUpdateConcurrencyException`, which `TicketService.UpdateAsync` translates into a
+**409 Conflict** (`"This ticket was modified by someone else since you loaded it..."`).
+Sending no `rowVersion` skips the check (last-write-wins), which the frontend never does —
+it always round-trips the value it last fetched. Covered by
+`TicketCrudTests.UpdateTicket_WithStaleRowVersion_Returns409` and the
+`...WithoutRowVersion_StillSucceeds` sibling test.
+
 ## API surface
 
 All endpoints are under `/api` and require `Authorization: Bearer <token>` unless noted.
@@ -225,7 +239,8 @@ This runs:
   cannot GET or PUT Customer B's ticket by guessing/incrementing its id (expects 403/404),
   cannot see it in their own ticket listing, and that anonymous requests are rejected (401).
 
-Last known-good result: **36/36 tests passing** (24 unit + 12 integration).
+Last known-good result: **38/38 tests passing** (24 unit + 14 integration, the latter
+including the two optimistic-concurrency tests described above).
 
 ## Known limitations / assumptions
 

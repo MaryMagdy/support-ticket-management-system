@@ -52,7 +52,7 @@ public class TicketDataIsolationTests : IClassFixture<CustomWebApplicationFactor
         var createResponse = await clientB.PostAsJsonAsync("/api/tickets", new CreateTicketRequest("B ticket to protect", "Details", TicketPriority.Low), JsonTestOptions.Options);
         var bTicket = await createResponse.Content.ReadFromJsonAsync<TicketDto>(JsonTestOptions.Options);
 
-        var updateResponse = await clientA.PutAsJsonAsync($"/api/tickets/{bTicket!.Id}", new UpdateTicketRequest("Hacked title", null, null, null, null), JsonTestOptions.Options);
+        var updateResponse = await clientA.PutAsJsonAsync($"/api/tickets/{bTicket!.Id}", new UpdateTicketRequest("Hacked title", null, null, null, null, null), JsonTestOptions.Options);
 
         updateResponse.StatusCode.Should().BeOneOf(HttpStatusCode.NotFound, HttpStatusCode.Forbidden);
     }

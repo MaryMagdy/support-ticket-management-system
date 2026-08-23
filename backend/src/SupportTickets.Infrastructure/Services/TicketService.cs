@@ -128,6 +128,11 @@ public class TicketService : ITicketService
 
         EnforceReadAccess(ticket);
 
+        if (request.RowVersion.HasValue)
+        {
+            _db.Entry(ticket).Property(t => t.RowVersion).OriginalValue = request.RowVersion.Value;
+        }
+
         // Title / description editable by owner (customer) or admin
         if (request.Title != null || request.Description != null)
         {
@@ -173,7 +178,17 @@ public class TicketService : ITicketService
         }
 
         ticket.UpdatedAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
+        ticket.RowVersion = Guid.NewGuid();
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictAppException(
+                "This ticket was modified by someone else since you loaded it. Refresh and try again.");
+        }
 
         return ToDto(ticket);
     }
@@ -239,6 +254,7 @@ public class TicketService : ITicketService
         t.AssignedAgent?.FullName,
         t.CreatedAt,
         t.UpdatedAt,
-        TicketCalculations.TotalTimeMinutes(t.TimeEntries)
+        TicketCalculations.TotalTimeMinutes(t.TimeEntries),
+        t.RowVersion
     );
 }

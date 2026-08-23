@@ -25,7 +25,18 @@
         </div>
 
         <p class="meta">Created by {{ ticket.customerName }} on {{ ticket.createdAt | date: 'medium' }}</p>
-        <p class="meta">Assigned to {{ ticket.assignedAgentName || 'Unassigned' }}</p>
+
+        <mat-form-field appearance="outline" *ngIf="isAdmin">
+          <mat-label>Assigned agent</mat-label>
+          <mat-select
+            [value]="ticket.assignedAgentId"
+            (selectionChange)="assignAgent($event.value)"
+          >
+            <mat-option [value]="null">Unassigned</mat-option>
+            <mat-option *ngFor="let a of agents" [value]="a.id">{{ a.fullName }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <p class="meta" *ngIf="!isAdmin">Assigned to {{ ticket.assignedAgentName || 'Unassigned' }}</p>
       </div>
     </mat-tab>
 

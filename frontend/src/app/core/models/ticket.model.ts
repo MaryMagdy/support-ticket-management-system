@@ -13,6 +13,7 @@ export interface Ticket {
   createdAt: string;
   updatedAt: string;
   totalTimeMinutes: number;
+  rowVersion: string;
 }
 
 export interface CreateTicketRequest {
@@ -27,6 +28,7 @@ export interface UpdateTicketRequest {
   status?: TicketStatus;
   priority?: TicketPriority;
   assignedAgentId?: number | null;
+  rowVersion?: string | null;
 }
 
 export interface TicketQueryParams {

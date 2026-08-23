@@ -127,19 +127,22 @@ and by reading the backend DTOs, replacing an earlier, incorrect best-effort gue
 
 ## Known limitations / incomplete pieces
 
-- **No activity-log/timeline endpoint exists on the backend.** The backend has an `ActivityLog`
-  domain entity but no corresponding controller/route. The ticket-detail "Activity" tab therefore
-  has no data source: `TicketDetailComponent.activity` is always an empty array, and the tab
-  renders an explicit empty state ("Timeline data is not yet available from the backend") instead
-  of calling a nonexistent endpoint or crashing/404-looping. `ActivityLogEntry`/`ActivityType`
-  models remain in `core/models/activity-log.model.ts`, matching the backend DTO shape, ready to
-  wire up once/if a real endpoint is added.
+- **Optimistic concurrency**: `Ticket.rowVersion` (a Guid) is round-tripped on every status/
+  priority/assignment update. If the ticket was changed by someone else since it was last
+  fetched, the backend returns 409 and the global error interceptor shows the conflict message;
+  `TicketDetailComponent` then reloads the ticket and activity log so the form reflects the
+  current state before the user retries.
+- **Ticket assignment**: the Details tab shows an "Assigned agent" dropdown for Admins only
+  (populated from `GET /users?role=SupportAgent`), which calls `PUT /tickets/:id` with
+  `assignedAgentId`. Agents/Customers see a read-only "Assigned to" line instead.
 - **Admin ticket list vs. agent/customer lists** are three separate components
   (`TicketListComponent`, `AgentTicketsComponent`, `CustomerTicketsComponent`) rather than one
   parameterized component, to keep each one simple; they share the same `TicketService` calls.
   The agent/customer lists do not pass an `assignedAgentId`/`customerId` filter — the backend
-  presumably scopes `GET /tickets` results server-side based on the authenticated user's role, but
-  this was not independently re-verified for every role during this pass.
+  scopes `GET /tickets` results server-side based on the authenticated user's role (verified live).
+- **`GET /api/users` is not paginated** — it returns the full array, so `UsersComponent` fetches
+  it once and paginates client-side with `MatPaginator` rather than requesting pages from the
+  server.
 - **Bundle size** exceeds the default 500 KB Angular CLI budget (see Build section above) — build
   still succeeds, this is a warning only.
 - **User creation UI** always requires a password field when creating (not editing) — matches a

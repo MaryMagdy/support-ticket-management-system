@@ -94,7 +94,7 @@ public class TicketServiceTests
         var currentUser = new FakeCurrentUserService(customerA.Id, UserRole.Customer);
         var service = new TicketService(db, currentUser);
 
-        Func<Task> act = () => service.UpdateAsync(ticket.Id, new UpdateTicketRequest(null, null, null, TicketPriority.Critical, null));
+        Func<Task> act = () => service.UpdateAsync(ticket.Id, new UpdateTicketRequest(null, null, null, TicketPriority.Critical, null, null));
 
         await act.Should().ThrowAsync<ForbiddenException>();
     }
@@ -112,7 +112,7 @@ public class TicketServiceTests
         var service = new TicketService(db, currentUser);
 
         // Agent trying to jump straight to Resolved from Open (must go through InProgress)
-        Func<Task> act = () => service.UpdateAsync(ticket.Id, new UpdateTicketRequest(null, null, TicketStatus.Resolved, null, null));
+        Func<Task> act = () => service.UpdateAsync(ticket.Id, new UpdateTicketRequest(null, null, TicketStatus.Resolved, null, null, null));
 
         await act.Should().ThrowAsync<ValidationAppException>();
     }
@@ -129,7 +129,7 @@ public class TicketServiceTests
         var currentUser = new FakeCurrentUserService(agent.Id, UserRole.SupportAgent);
         var service = new TicketService(db, currentUser);
 
-        var result = await service.UpdateAsync(ticket.Id, new UpdateTicketRequest(null, null, TicketStatus.InProgress, null, null));
+        var result = await service.UpdateAsync(ticket.Id, new UpdateTicketRequest(null, null, TicketStatus.InProgress, null, null, null));
 
         result.Status.Should().Be(TicketStatus.InProgress);
         (await db.ActivityLogs.CountAsync()).Should().Be(1);

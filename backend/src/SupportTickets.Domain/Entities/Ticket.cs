@@ -24,4 +24,11 @@ public class Ticket
     public ICollection<TimeEntry> TimeEntries { get; set; } = new List<TimeEntry>();
 
     public int TotalTimeMinutes => TimeEntries?.Sum(t => t.DurationMinutes) ?? 0;
+
+    /// <summary>
+    /// App-managed concurrency token (a new value is assigned on every update). Modeled as a
+    /// plain Guid rather than a DB-generated rowversion column so it works identically on both
+    /// SQLite (dev) and SQL Server (prod) — SQLite has no native rowversion type.
+    /// </summary>
+    public Guid RowVersion { get; set; } = Guid.NewGuid();
 }

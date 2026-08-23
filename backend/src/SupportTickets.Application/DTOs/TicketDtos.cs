@@ -14,7 +14,8 @@ public record TicketDto(
     string? AssignedAgentName,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    int TotalTimeMinutes
+    int TotalTimeMinutes,
+    Guid RowVersion
 );
 
 public record CreateTicketRequest(string Title, string Description, TicketPriority Priority);
@@ -24,7 +25,8 @@ public record UpdateTicketRequest(
     string? Description,
     TicketStatus? Status,
     TicketPriority? Priority,
-    int? AssignedAgentId
+    int? AssignedAgentId,
+    Guid? RowVersion
 );
 
 public record TicketQueryParameters

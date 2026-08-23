@@ -78,4 +78,42 @@ public class TicketCrudTests : IClassFixture<CustomWebApplicationFactory>
         var comments = await listResponse.Content.ReadFromJsonAsync<List<CommentDto>>();
         comments.Should().ContainSingle(c => c.Text == "Any updates?");
     }
+
+    [Fact]
+    public async Task UpdateTicket_WithStaleRowVersion_Returns409()
+    {
+        var client = await AuthenticatedClientAsync("crud5");
+        var createResponse = await client.PostAsJsonAsync("/api/tickets", new CreateTicketRequest("Concurrency test", "Details", TicketPriority.Low), JsonTestOptions.Options);
+        var created = await createResponse.Content.ReadFromJsonAsync<TicketDto>(JsonTestOptions.Options);
+
+        // First update with the correct (current) RowVersion succeeds and advances it.
+        var firstUpdate = await client.PutAsJsonAsync(
+            $"/api/tickets/{created!.Id}",
+            new UpdateTicketRequest("Updated once", null, null, null, null, created.RowVersion),
+            JsonTestOptions.Options);
+        firstUpdate.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Second update reusing the now-stale original RowVersion must be rejected as a conflict.
+        var staleUpdate = await client.PutAsJsonAsync(
+            $"/api/tickets/{created.Id}",
+            new UpdateTicketRequest("Updated twice", null, null, null, null, created.RowVersion),
+            JsonTestOptions.Options);
+
+        staleUpdate.StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task UpdateTicket_WithoutRowVersion_StillSucceeds()
+    {
+        var client = await AuthenticatedClientAsync("crud6");
+        var createResponse = await client.PostAsJsonAsync("/api/tickets", new CreateTicketRequest("No version check", "Details", TicketPriority.Low), JsonTestOptions.Options);
+        var created = await createResponse.Content.ReadFromJsonAsync<TicketDto>(JsonTestOptions.Options);
+
+        var updateResponse = await client.PutAsJsonAsync(
+            $"/api/tickets/{created!.Id}",
+            new UpdateTicketRequest("Updated without version", null, null, null, null, null),
+            JsonTestOptions.Options);
+
+        updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
 }

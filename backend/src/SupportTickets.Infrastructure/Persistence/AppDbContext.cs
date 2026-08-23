@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
         {
             b.Property(t => t.Title).IsRequired().HasMaxLength(300);
             b.Property(t => t.Description).IsRequired().HasMaxLength(4000);
+            b.Property(t => t.RowVersion).IsConcurrencyToken();
             b.Ignore(t => t.TotalTimeMinutes);
 
             b.HasOne(t => t.Customer)

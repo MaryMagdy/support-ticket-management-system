@@ -13,6 +13,7 @@ import { TicketService } from '../../../core/services/ticket.service';
 import { CommentService } from '../../../core/services/comment.service';
 import { TimeEntryService } from '../../../core/services/time-entry.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { UserService } from '../../../core/services/user.service';
 import {
   ActivityLogEntry,
   Comment,
@@ -20,6 +21,7 @@ import {
   TicketPriority,
   TicketStatus,
   TimeEntry,
+  User,
   UserRole,
 } from '../../../core/models';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -47,6 +49,7 @@ export class TicketDetailComponent implements OnInit {
   comments: Comment[] = [];
   timeEntries: TimeEntry[] = [];
   activity: ActivityLogEntry[] = [];
+  agents: User[] = [];
 
   statuses = Object.values(TicketStatus);
   priorities = Object.values(TicketPriority);
@@ -68,6 +71,7 @@ export class TicketDetailComponent implements OnInit {
     private ticketService: TicketService,
     private commentService: CommentService,
     private timeEntryService: TimeEntryService,
+    private userService: UserService,
     public authService: AuthService
   ) {}
 
@@ -78,11 +82,20 @@ export class TicketDetailComponent implements OnInit {
       this.loadComments();
       this.loadTimeEntries();
       this.loadActivity();
+      if (this.isAdmin) this.loadAgents();
     }
   }
 
   get isAgentOrAdmin(): boolean {
     return this.authService.hasRole(UserRole.Admin, UserRole.SupportAgent);
+  }
+
+  get isAdmin(): boolean {
+    return this.authService.hasRole(UserRole.Admin);
+  }
+
+  loadAgents(): void {
+    this.userService.getUsers(UserRole.SupportAgent).subscribe((agents) => (this.agents = agents));
   }
 
   get totalMinutes(): number {
@@ -108,17 +121,45 @@ export class TicketDetailComponent implements OnInit {
   }
 
   updateStatus(status: TicketStatus): void {
-    this.ticketService.updateTicket(this.ticketId, { status }).subscribe((t) => {
-      this.ticket = t;
-      this.loadActivity();
-    });
+    this.ticketService
+      .updateTicket(this.ticketId, { status, rowVersion: this.ticket?.rowVersion })
+      .subscribe({
+        next: (t) => {
+          this.ticket = t;
+          this.loadActivity();
+        },
+        error: () => this.reloadOnConflict(),
+      });
   }
 
   updatePriority(priority: TicketPriority): void {
-    this.ticketService.updateTicket(this.ticketId, { priority }).subscribe((t) => {
-      this.ticket = t;
-      this.loadActivity();
-    });
+    this.ticketService
+      .updateTicket(this.ticketId, { priority, rowVersion: this.ticket?.rowVersion })
+      .subscribe({
+        next: (t) => {
+          this.ticket = t;
+          this.loadActivity();
+        },
+        error: () => this.reloadOnConflict(),
+      });
+  }
+
+  assignAgent(assignedAgentId: number | null): void {
+    this.ticketService
+      .updateTicket(this.ticketId, { assignedAgentId, rowVersion: this.ticket?.rowVersion })
+      .subscribe({
+        next: (t) => {
+          this.ticket = t;
+          this.loadActivity();
+        },
+        error: () => this.reloadOnConflict(),
+      });
+  }
+
+  /** On a 409 (stale RowVersion) the error interceptor already shows the conflict message; reload so the form reflects the current state before the user retries. */
+  private reloadOnConflict(): void {
+    this.loadTicket();
+    this.loadActivity();
   }
 
   addComment(): void {
