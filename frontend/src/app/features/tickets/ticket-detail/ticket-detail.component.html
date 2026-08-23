@@ -1,3 +1,8 @@
+<div class="tab-content" *ngIf="notFound">
+  <h2>Ticket not found</h2>
+  <p>This ticket doesn't exist, or you don't have permission to view it.</p>
+</div>
+
 <ng-container *ngIf="ticket">
   <app-page-header [title]="ticket.title" [subtitle]="'Ticket #' + ticket.id"></app-page-header>
 

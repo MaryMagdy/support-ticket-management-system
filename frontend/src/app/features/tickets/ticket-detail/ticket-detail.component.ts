@@ -114,8 +114,21 @@ export class TicketDetailComponent implements OnInit {
     return this.timeEntries.reduce((sum, e) => sum + e.durationMinutes, 0);
   }
 
+  loading = true;
+  notFound = false;
+
   loadTicket(): void {
-    this.ticketService.getTicket(this.ticketId).subscribe((t) => (this.ticket = t));
+    this.loading = true;
+    this.ticketService.getTicket(this.ticketId).subscribe({
+      next: (t) => {
+        this.ticket = t;
+        this.loading = false;
+      },
+      error: () => {
+        this.notFound = true;
+        this.loading = false;
+      },
+    });
   }
 
   loadComments(): void {

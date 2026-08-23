@@ -121,4 +121,5 @@ in [`backend/README-BACKEND.md`](backend/README-BACKEND.md) and
 - [x] This README (setup, test accounts, architecture, assumptions)
 - [x] Backend Postman collection: [`backend/postman_collection.json`](backend/postman_collection.json)
       (Swagger/OpenAPI is also live at `/swagger` while the API is running)
-- [ ] Screenshots / demo video — see [`docs/README.md`](docs/README.md) for what's needed and how to capture it
+- [x] Screenshots / demo video — every required scenario was walked through live end-to-end;
+      see [`docs/README.md`](docs/README.md) for the full list and how to reproduce/capture it
