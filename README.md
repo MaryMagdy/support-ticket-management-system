@@ -121,5 +121,6 @@ in [`backend/README-BACKEND.md`](backend/README-BACKEND.md) and
 - [x] This README (setup, test accounts, architecture, assumptions)
 - [x] Backend Postman collection: [`backend/postman_collection.json`](backend/postman_collection.json)
       (Swagger/OpenAPI is also live at `/swagger` while the API is running)
-- [x] Screenshots / demo video — every required scenario was walked through live end-to-end;
-      see [`docs/README.md`](docs/README.md) for the full list and how to reproduce/capture it
+- [x] Screenshots — 18 screenshots covering every required scenario (login, dashboard, ticket
+      list/detail tabs, full create→assign→resolve→close lifecycle, data isolation denial) in
+      [`docs/screenshots/`](docs/screenshots), indexed in [`docs/README.md`](docs/README.md)

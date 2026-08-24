@@ -1,40 +1,31 @@
-# Screenshots / demo video
+# Screenshots
 
-Every required scenario below was walked through live in a real browser session against the
-running app (not mocked) as part of building this submission. The screenshots weren't saved
-as files automatically — save the ones you want from the chat session (or re-run the steps
-below yourself) into `docs/screenshots/` and reference them from the root `README.md`.
+Screenshots below were captured from a real, running instance of the app (backend + Angular
+dev server), exercising every required end-to-end scenario. No mocked data or hand-edited
+images — each PNG is a genuine browser screenshot from the flow described.
 
-## Scenarios covered (all verified working)
+| # | Screenshot | Scenario |
+|---|------------|----------|
+| 1 | [`01-login-page.png`](screenshots/01-login-page.png) | Sign-in page |
+| 2 | [`02-admin-dashboard.png`](screenshots/02-admin-dashboard.png) | Admin dashboard — counts by status, open+critical, avg resolution time, "Tickets by status" chart, agent workload |
+| 3 | [`03-admin-ticket-list.png`](screenshots/03-admin-ticket-list.png) | Admin "All Tickets" — search, Status/Priority filters, sortable columns, pagination |
+| 4 | [`04-admin-users.png`](screenshots/04-admin-users.png) | Admin "Users" management page |
+| 5 | [`05-ticket-detail-details-tab.png`](screenshots/05-ticket-detail-details-tab.png) | Ticket detail — Details tab (Admin view: editable Status/Priority + Assigned agent) |
+| 6 | [`06-ticket-detail-comments-tab.png`](screenshots/06-ticket-detail-comments-tab.png) | Ticket detail — Comments tab |
+| 7 | [`07-ticket-detail-activity-tab.png`](screenshots/07-ticket-detail-activity-tab.png) | Ticket detail — Activity tab (real timeline from `GET /tickets/:id/activity`) |
+| 8 | [`08-ticket-detail-timetracking-tab.png`](screenshots/08-ticket-detail-timetracking-tab.png) | Ticket detail — Time Tracking tab (logged entries + total + log-time form) |
+| 9 | [`09-customer-ticket-list.png`](screenshots/09-customer-ticket-list.png) | Customer "My Tickets" — scoped to only that customer's own tickets |
+| 10 | [`10-customer-create-ticket-form.png`](screenshots/10-customer-create-ticket-form.png) | Customer creating a new ticket (title/description/priority) |
+| 11 | [`11-customer-after-create-ticket.png`](screenshots/11-customer-after-create-ticket.png) | The newly created ticket, auto-generated ID, `Open` status |
+| 12 | [`12-admin-assign-ticket-to-agent.png`](screenshots/12-admin-assign-ticket-to-agent.png) | Admin assigns the new ticket to a Support Agent |
+| 13 | [`13-agent-ticket-list.png`](screenshots/13-agent-ticket-list.png) | Agent "My Assigned Tickets" — scoped to only tickets assigned to that agent |
+| 14 | [`14-agent-ticket-inprogress.png`](screenshots/14-agent-ticket-inprogress.png) | Agent moves the ticket to `InProgress` |
+| 15 | [`15-agent-ticket-resolved.png`](screenshots/15-agent-ticket-resolved.png) | Agent moves the ticket to `Resolved` |
+| 16 | [`16-customer-sees-resolved-close-button.png`](screenshots/16-customer-sees-resolved-close-button.png) | Customer sees the **"Close ticket"** button once their ticket is Resolved |
+| 17 | [`17-customer-closed-ticket.png`](screenshots/17-customer-closed-ticket.png) | Customer closes it — status flips to `Closed`, button disappears |
+| 18 | [`18-data-isolation-denied-other-customer-ticket.png`](screenshots/18-data-isolation-denied-other-customer-ticket.png) | **Data isolation proof**: a different customer navigates directly to that ticket's URL and is denied — "Ticket not found" (backend returns 404, not a data leak) |
 
-1. **Login** — sign-in form, tested with all three roles.
-2. **Admin dashboard** — total/status counts, open+critical count, average resolution time,
-   "Tickets by status" bar chart, agent workload.
-3. **Ticket list (Admin)** — search box, Status/Priority filters, sortable columns, pagination
-   footer ("1–10 of 10" etc).
-4. **Ticket detail — Details tab** — Admin sees editable Status/Priority selects plus an
-   "Assigned agent" dropdown (Admin-only); Agent/Customer see read-only fields, and a Customer
-   additionally sees a **"Close ticket"** button once the ticket is Resolved.
-5. **Ticket detail — Comments tab** — existing thread + add-comment form.
-6. **Ticket detail — Activity tab** — real timeline entries (assignment/priority/status
-   changes) pulled from `GET /api/tickets/:id/activity`.
-7. **Ticket detail — Time Tracking tab** — logged entries, auto-calculated total, log-time form.
-8. **Admin Users page** — list/create/edit/delete users, client-side paginated.
-9. **Customer "My Tickets"** — scoped to only the logged-in customer's own tickets (4 of the
-   10 seeded tickets, for `customer1`).
-10. **Create ticket (Customer)** — title/description/priority reactive form.
-11. **Agent "My Assigned Tickets"** — scoped to only tickets assigned to that agent (2 of 10,
-    for `agent1`).
-12. **Data isolation proof** — logged in as `customer1`, navigated directly to
-    `/tickets/5` (a ticket owned by `customer2`) by URL manipulation. Backend returned
-    **404** on `GET /api/tickets/5` (not 403 — it doesn't even reveal the ticket exists), and
-    the frontend renders a clear "Ticket not found" state rather than a blank page or leaking
-    data.
-13. **Customer closes a Resolved ticket** — logged in as the ticket's own customer, clicked
-    "Close ticket" on a Resolved ticket, confirmed status flips to Closed and the button
-    disappears (network trace: `PUT /api/tickets/:id` → 200).
-
-## How to reproduce / capture your own
+## How to reproduce
 
 ```bash
 # terminal 1
@@ -44,7 +35,6 @@ cd backend && dotnet run --project src/SupportTickets.Api
 cd frontend && npm start
 ```
 
-Open `http://localhost:4200`, log in with the seeded accounts (see root `README.md`), and
-walk through the scenarios above. Seeded ticket IDs 1–10 exist out of the box; ticket #3 and
-#5 are good ones to use for the activity-timeline and data-isolation demos respectively
-(owned by `customer3` and `customer2`).
+Open `http://localhost:4200` and log in with the seeded accounts from the root `README.md`.
+The full ticket lifecycle above (create → assign → in-progress → resolved → closed) and the
+data-isolation check can be replayed with any two customer accounts and one agent account.
